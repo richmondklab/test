@@ -1,1 +1,228 @@
 
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>iDetector</title>
+  <style>
+    :root{
+      --bg:#f3f7ff;
+      --card:#ffffff;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --text:#101827;
+      --muted:#6b7280;
+      --good:#16a34a;
+      --warn:#f59e0b;
+      --danger:#dc2626;
+      --line:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#edf4ff,#f7faff);
+      font-family: Arial, sans-serif;
+      color:var(--text);
+      padding:28px;
+    }
+    .container{
+      max-width:980px;
+      margin:0 auto;
+      background:var(--card);
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 10px 30px rgba(37,99,235,0.08);
+    }
+    h1{
+      margin:0 0 8px;
+      color:var(--primary-dark);
+      font-size:2rem;
+    }
+    .subtitle{
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1.2fr 0.8fr;
+      gap:22px;
+    }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:18px;
+      background:#fff;
+    }
+    textarea{
+      width:100%;
+      min-height:180px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      resize:vertical;
+      font-size:16px;
+    }
+    input[type="file"]{
+      margin-top:8px;
+      width:100%;
+      border:1px dashed var(--line);
+      border-radius:10px;
+      padding:10px;
+      background:#fafbff;
+    }
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+    button{
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    button.secondary{
+      background:#94a3b8;
+    }
+    button.danger{
+      background:#dc2626;
+    }
+    button[disabled]{
+      opacity:0.7;
+      cursor:not-allowed;
+    }
+    .result{
+      margin-top:18px;
+      border-radius:12px;
+      padding:18px;
+      border:1px solid var(--line);
+      background:#f8fbff;
+    }
+    .score{
+      font-size:2rem;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+    .verdict{
+      font-size:1.1rem;
+      font-weight:600;
+      margin-bottom:8px;
+    }
+    .tip{
+      color:#374151;
+      line-height:1.6;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:8px;
+    }
+    .thumb{
+      display:none;
+      max-width:220px;
+      max-height:140px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      margin-top:10px;
+    }
+    .history{
+      margin-top:18px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+      background:#fafcff;
+    }
+    .history h3{
+      margin-top:0;
+      margin-bottom:12px;
+    }
+    .report{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:10px;
+      background:#fff;
+    }
+    .report-head{
+      display:flex;
+      justify-content:space-between;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .report-text{
+      white-space:pre-wrap;
+      font-size:14px;
+      line-height:1.5;
+    }
+    .report-actions{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .small-btn{
+      padding:8px 10px;
+      font-size:12px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+    }
+    .good{ background:#16a34a; color:#fff; }
+    .bad{ background:#ef4444; color:#fff; }
+    .delete{ background:#9ca3af; color:#fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>iDetector</h1>
+    <div class="subtitle">Détecteur d’arnaque par analyse de message reçu.</div>
+
+    <div class="grid">
+      <div class="panel">
+        <label for="imageInput">Ajouter une capture d’écran :</label>
+        <input id="imageInput" type="file" accept="image/*" />
+
+        <img id="thumb" class="thumb" alt="preview" />
+
+        <div class="actions">
+          <button id="analyzeBtn">Analyser</button>
+          <button id="ocrBtn" class="secondary">OCR</button>
+          <button id="sampleBtn" class="secondary">Exemple</button>
+        </div>
+
+        <div style="margin-top:16px;">
+          <textarea id="messageInput" placeholder="Collez ici un message suspect..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="saveReportBtn" class="secondary">Enregistrer</button>
+          <button id="exportBtn" class="secondary">Exporter CSV</button>
+        </div>
+
+        <div id="status" class="meta"></div>
+
+        <div id="resultBox" class="result">
+          <div>Résultat : aucune analyse effectuée.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0 0 12px;">Historique</h3>
+          <span id="reportsCount" class="meta">0 signalements</span>
+        </div>
+        <div id="reportsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+  <script src="test.js"></script>
+</body>
+</html>
